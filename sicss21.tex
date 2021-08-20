@@ -1,0 +1,917 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  ignorenonframetext,
+]{beamer}
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{part title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{part title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Machine Learning},
+  pdfauthor={Dr Thomas Robinson, Durham University},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\newif\ifbibliography
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{bm}
+\input{ml_sty.tex}
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Machine Learning}
+\subtitle{SICSS-Oxford 2021}
+\author{Dr Thomas Robinson, Durham University}
+\date{June 2021}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{Hello!}
+\protect\hypertarget{hello}{}
+Today's workshop:
+
+\begin{itemize}
+\tightlist
+\item
+  1 hr 15 min lecture
+\item
+  15 minute break/Q\&A
+\item
+  1.5 hour coding walkthrough on constructing neural networks in
+  \(\texttt{R}\)
+\end{itemize}
+
+\textbf{Caveat}: three hours is not a lot of time!
+
+\begin{itemize}
+\tightlist
+\item
+  Introduce where I think ML is most useful in social sciences
+\item
+  Equip you with some fundamental tools that can be applied across:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Contexts
+  \item
+    Data sources
+  \item
+    Algorithms
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lecture content}
+\protect\hypertarget{lecture-content}{}
+Goals are threefold:
+
+\begin{enumerate}
+\item
+  Brief overview of machine learning
+
+  \begin{itemize}
+  \tightlist
+  \item
+    What is ML?
+  \item
+    Prediction problems
+  \item
+    Bias-variance tradeoff
+  \end{itemize}
+\item
+  Building basic neural networks
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Highly flexible, ``engineering-grade" ML method
+  \item
+    Now easily implementable in \(\texttt{R}\)
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+\hypertarget{what-is-machine-learning}{%
+\section{What is machine learning?}\label{what-is-machine-learning}}
+
+\begin{frame}{(Machine) learning and statistics}
+\protect\hypertarget{machine-learning-and-statistics}{}
+ML is a vague term: \vspace{1em}
+
+\begin{quote}
+``Machine learning is a subfield of \textbf{computer science} that is
+concerned with building \textbf{algorithms} which, to be useful, rely on
+a collection of examples of some phenomenon\ldots{} the process of
+solving a practical problem by 1) gathering a dataset, and 2)
+algorithmically building a statistical model based on that dataset.'' --
+Burkov 2019
+\end{quote}
+
+\vspace{1em}
+
+To me, ML is defined by:
+
+\begin{enumerate}
+\tightlist
+\item
+  ``Computationally-intensive" methods
+\item
+  Where researchers underspecify the relationship between variables
+\item
+  And allow the computer to search for (or learn) these relationships
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{\textbf{Machine} learning}
+\protect\hypertarget{machine-learning}{}
+Expectation: I need a \$1m super computer
+
+Reality: It runs in minutes on a personal computer
+
+\begin{figure}
+\centering
+\includegraphics{images/tensor_server.jpg}
+\caption{Google: Tensor Processing Unit server rack}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Why machine learning?}
+\protect\hypertarget{why-machine-learning}{}
+Machine learning can be:
+
+\begin{itemize}
+\tightlist
+\item
+  Powerful
+\item
+  Flexible
+\item
+  Reduce the burden on the researcher
+\end{itemize}
+
+It helps solve lots of \textbf{prediction problems} and can assist in
+\textbf{inference problems} too
+
+But ML is not a panacea!
+
+\begin{itemize}
+\item
+  ML cannot solve problems of poor research design
+\item
+  And can introduce its own issues
+\end{itemize}
+
+\includegraphics{images/twitter_algo_racist.png}
+\end{frame}
+
+\begin{frame}{Prediction and inference}
+\protect\hypertarget{prediction-and-inference}{}
+Consider the following linear model:
+
+\[
+\hat{y_i} = \hat{\beta_0} + \hat{\beta_1}x_{1i}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Inference is concerned with estimating the size/direction of the
+  relationship between variables (\(\bm{\hat{\beta}}\) problems)
+\item
+  Prediction is concerned with estimating some outcome, using the
+  relationships between variables (\(\bm{\hat{y}}\) problems)
+\end{itemize}
+
+These two facets are clearly connected:
+
+\begin{itemize}
+\tightlist
+\item
+  If we know the size/direction of the relationships, we can predict the
+  outcome
+\item
+  But we rarely know (or even pretend to know) the true model
+\item
+  Sometimes we can get good at \(\hat{\bm{y}}\) problems without knowing
+  \(\hat{\bm{\beta}}\)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{There are \(\hat{X}\) problems too}
+\protect\hypertarget{there-are-hatx-problems-too}{}
+We can also think about where the prediction problem lies:
+
+\begin{itemize}
+\item
+  \(\bm{\hat{y}}\) problems are about the dependent variable
+
+  \begin{itemize}
+  \item
+    To predict an election winner\ldots{}
+  \item
+    \ldots{} or the probability of revolution\ldots{}
+  \item
+    \ldots{} or the weather tomorrow
+  \item
+    These are not necessarily inferential problems
+  \end{itemize}
+\item
+  \(\bm{\hat{X}}\) problems are about independent variables
+
+  \begin{itemize}
+  \item
+    Dimensions of interest that may be important to our theory\ldots{}
+  \item
+    \ldots{} but which are not directly observable (i.e.~latent)
+  \item
+    We want to make predictions over \(\bm{X}\) so we can test an
+    inferential theory about the relationship between \(X\) and \(y\)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bias and variance}
+\protect\hypertarget{bias-and-variance}{}
+Bias is a feature of the estimator:
+
+\begin{itemize}
+\item
+  \(\text{Bias}_{\bm{\beta}} = \big(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\beta}\big)\)
+\item
+  With OLS under Gauss Markov assumptions,
+  \(\big(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\beta}\big) = 0\)
+\end{itemize}
+
+Variance occurs due to resampling from the population:
+
+\begin{itemize}
+\item
+  Parameter estimates change (slightly) as we re-estimate the model with
+  new data
+\item
+  \(\mathbb{V}_{\bm{\hat{\beta}}} = \mathbb{E}\big[(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\hat{\beta}})^2\big]\)
+\item
+  The average distance between a particular parameter estimate and the
+  mean of parameter estimates over multiple samples
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Visualising bias and variance}
+\protect\hypertarget{visualising-bias-and-variance}{}
+\begin{center}\includegraphics{sicss21_files/figure-beamer/bias-var-1} \end{center}
+\end{frame}
+
+\begin{frame}{Bias-variance trade off}
+\protect\hypertarget{bias-variance-trade-off}{}
+So can't we just choose a low-variance, low-bias modeling strategy? Not
+quite!
+
+Assume we calculate the mean squared error of some new data \(\bm{X'}\)
+given a trained model \(\hat{f}\): \[
+\text{MSE} = \mathbb{E}[(\hat{f}(\bm{X'})  - y)^2].
+\] We can decompose this further: \[
+MSE = \underbrace{\mathbb{E}\big[(\hat{f}(\bm{X'})-\mathbb{E}[\hat{y}])^2\big]}_{\text{Variance}} + \underbrace{\big(\mathbb{E}[\bm{\hat{y}}] - \bm{y}\big)^2}_{\text{Bias}^2}
+\]
+
+So holding the MSE fixed, if we reduce the variance we must increase the
+bias
+
+\begin{itemize}
+\tightlist
+\item
+  I.e. there is a \textbf{bias-variance trade-off}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Visualising the trade-off}
+\protect\hypertarget{visualising-the-trade-off}{}
+\includegraphics{sicss21_files/figure-beamer/tradeoff-1.pdf}
+\end{frame}
+
+\begin{frame}{A bit of bias can be useful}
+\protect\hypertarget{a-bit-of-bias-can-be-useful}{}
+\begin{center}\includegraphics{sicss21_files/figure-beamer/bias-var2-1} \end{center}
+\end{frame}
+
+\begin{frame}{Bias in ML}
+\protect\hypertarget{bias-in-ml}{}
+ML methods are typically powerful because they allow a tradeoff between
+variance and bias:
+
+\begin{itemize}
+\item
+  We do this by ``regularizing'' our estimator
+\item
+  Good for prediction
+\item
+  Bad for inference (in simple applications)
+\end{itemize}
+
+A nice introduction to bias, regularisation and ML is provided in:
+
+\begin{quote}
+\begin{quote}
+Kleinberg et al (2015). Prediction Policy Problems, AER.
+\end{quote}
+\end{quote}
+\end{frame}
+
+\hypertarget{treatment-effect-estimation-and-neural-networks}{%
+\section{Treatment effect estimation and neural
+networks}\label{treatment-effect-estimation-and-neural-networks}}
+
+\begin{frame}{Effect heterogeneity}
+\protect\hypertarget{effect-heterogeneity}{}
+Suppose we have 8 observations of an outcome, treatment assignment and
+two covariates:
+
+\vspace{1em}
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{table}[]
+    \begin{scriptsize}
+\begin{tabular}{c|c|cc}
+     \textbf{y} & \textbf{d} & \textbf{Gender} & \textbf{Education}  \\ \hline
+     12 & 1 & Female & High \\
+     13 & 1 & Female & Low\\
+     5 & 0 & Female & High\\
+     6 & 0 & Female & Low\\
+     7 & 1 & Male & High\\
+     8 & 1 & Male & Low\\
+     7 & 0 & Male & High\\
+     6 & 0 & Male & Low\\
+\end{tabular}
+\end{scriptsize}
+    \caption{Observed}
+\end{table}
+\end{column}
+
+\begin{column}{0.5\textwidth}
+\begin{table}[]
+    \begin{scriptsize}
+\begin{tabular}{c|c|cc}
+     \textbf{y} & \textbf{d} & \textbf{Gender} & \textbf{Education}  \\ \hline
+     ? & \textcolor{red}{0} & Female & High \\
+     ? & \textcolor{red}{0} & Female & Low\\
+     ? & \textcolor{red}{1} & Female & High\\
+     ? & \textcolor{red}{1} & Female & Low\\
+     ? & \textcolor{red}{0} & Male & High\\
+     ? & \textcolor{red}{0} & Male & Low\\
+     ? & \textcolor{red}{1} & Male & High\\
+     ? & \textcolor{red}{1} & Male & Low\\
+\end{tabular}
+\end{scriptsize}
+    \caption{Unobserved counterfactual}
+\end{table}
+\end{column}
+\end{columns}
+
+\centering \(\text{ATE}_{\text{Observed}} = 10 - 6 = 4\)
+
+\emph{The ATE may mask considerable heterogeneity}
+\end{frame}
+
+\begin{frame}{Conditional Average Treatment Effect}
+\protect\hypertarget{conditional-average-treatment-effect}{}
+We can break down our ATE into conditional estimates: \[
+\text{CATE} = \mathbb{E}[Y|d = 1, X=a] - \mathbb{E}[Y|d = 0, X=a]
+\]
+
+In particular, we can think about estimating the individual level
+effect, i.e. \[
+\text{ITE} = [Y_i|d=1] - [Y_i|d = 0]
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  This is not an average
+\item
+  Conventionally impossible to estimate given \textbf{fundamental
+  problem of causal inference}
+\end{itemize}
+
+Prediction problem:
+
+\begin{itemize}
+\tightlist
+\item
+  For those treated (control) units, what would they have done under
+  control (treatment)?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Enter the neural network}
+\protect\hypertarget{enter-the-neural-network}{}
+What we need is a flexible way of modelling the potential relationship
+between \textbf{y}, \textbf{d} and \textbf{X}:
+
+\begin{itemize}
+\item
+  Neural networks offer one such approach
+\item
+  Very popular in industry
+\item
+  Recently a lot more accessible in \(\texttt{R}\)
+\item
+  Other methods available:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Random forests
+  \item
+    BART
+  \item
+    Best subset modelling
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Simple perceptron model}
+\protect\hypertarget{simple-perceptron-model}{}
+Suppose we have a single vector of input data \(\bm{x}\), and we want to
+predict the output \(\bm{y}\)
+
+A simple perceptron model looks like the following:
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth,height=\textheight]{images/sn_perceptron.png}
+\caption{Single node, single layer perceptron model}
+\end{figure}
+
+\(w\) is the weight term and \(b\) is the bias term -- in this simple
+case, both are scalar.
+\end{frame}
+
+\begin{frame}{Activation functions \(\phi\)}
+\protect\hypertarget{activation-functions-phi}{}
+The activation function is simply a function applied to the result of
+\(w\bm{x} + b\), that controls the range of the output vector
+
+\(\phi\) may simply be the \textbf{identity function}:
+
+\begin{itemize}
+\tightlist
+\item
+  I.e. \(\phi(\bm{x}) = \bm{x}\)
+\end{itemize}
+
+\textbf{Sigmoid function}:
+
+\begin{itemize}
+\tightlist
+\item
+  \(\phi(\bm{x}) = \frac{1}{1 + e^{-\bm{x}}}\)
+\end{itemize}
+
+\textbf{Rectified Linear Unit (ReLU)}:
+
+\begin{itemize}
+\tightlist
+\item
+  \(\phi(\bm{x}) = \max(0,x)\)
+\end{itemize}
+
+These functions (and others) are particularly useful because they have
+known derivatives -- which we'll return to later!
+\end{frame}
+
+\begin{frame}{Gaining a prediction from our simple model}
+\protect\hypertarget{gaining-a-prediction-from-our-simple-model}{}
+\begin{columns}
+\begin{column}{0.4\textwidth}
+\includegraphics[width = \textwidth]{images/sn_perceptron.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+Suppose:
+\begin{itemize}
+\item $\phi$ is the ReLU function
+\item $\bm{w} = \bm{2}, b = 1$
+\end{itemize}
+\end{column}
+\end{columns}
+
+And we observe the following input vector \(\bm{x}\): \[
+\begin{bmatrix}
+5 \\
+1 \\
+-1 
+\end{bmatrix}  
+\] What is \(\hat{\bm{y}}\)?
+\end{frame}
+
+\begin{frame}{Multiple inputs}
+\protect\hypertarget{multiple-inputs}{}
+The first model is very basic, so we can adapt it to accept
+\textbf{multiple} inputs:
+
+\begin{itemize}
+\tightlist
+\item
+  Let \(k\) index input variables,
+  i.e.~\(\bm{X} = \{\bm{x}_1,\ldots,\bm{x}_k\}\)
+\item
+  Let \(\bm{w}\) be a vector of weights,
+  i.e.~\(\bm{w} = \{w_1, \ldots, w_k \}\)
+\end{itemize}
+
+Inside our activation function we replace \(w\bm{x} + b\) with \[
+w_1\bm{x}_1 + \ldots + w_k\bm{x}_k + b \equiv \sum_k{w_k\bm{x}_k} + b
+\]
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth,height=\textheight]{images/mn_perceptron.png}
+\caption{Single node, multiple input perceptron model}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Initialisation and training}
+\protect\hypertarget{initialisation-and-training}{}
+We need to set up a network structure, prior to feeding in our data.
+
+For a single-node perceptron model with \(k\) inputs, that means
+instantiating the weights and biases
+
+\begin{itemize}
+\item
+  A naive option sets \(\bm{w} = \bm{0}\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This is rarely optimal -- it can lead to significantly slower
+    convergence (and can even disrupt convergence entirely)
+  \end{itemize}
+\end{itemize}
+
+A now standard approach is to use \textbf{Xavier initialisation} where:
+\[
+w_k \sim \mathcal{N}(0,\frac{1}{k})
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  where \(k\) is the number of inputs to the node
+\item
+  Typically used when \(\phi\) is tanh or sigmoidal
+\item
+  Bias terms are instantiated at zero
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Loss functions}
+\protect\hypertarget{loss-functions}{}
+The goal of the perceptron is to minimise the predictive error between
+\(\bm{y}\) and \(\bm{\hat{y}} = \phi(\sum_k{w_k\bm{x}_k} + b)\)
+
+Depending on the type of prediction problem, we want to use a different
+function:
+
+\textbf{Continuous \(\bm{y}\)}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\phi\) will be linear or ReLU
+\item
+  Minimise the mean squared error
+\item
+  I.e. \(\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y_i})^2\)
+\end{itemize}
+
+\textbf{Binary \(\bm{y}\)}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\phi\) will be sigmoid
+\item
+  Minimise using \textbf{cross-entropy} loss function
+\item
+  I.e.
+  \(=-\frac{1}{N}\sum_{i=1}^n\sum_{c=1}^{C}{y_{ic}\log(\hat{y_{ic}})}\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    where \(c\) indexes the classes within the binary/categorical
+    variable
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{OLS/Logistic regression as a single-layer perceptron}
+\protect\hypertarget{olslogistic-regression-as-a-single-layer-perceptron}{}
+We can construe OLS as a single-node perceptron model, \[
+\bm{y} = \phi(b + w_1\bm{x_1} + ... + w_k\bm{x_k}),
+\] when:
+
+\begin{itemize}
+\tightlist
+\item
+  \(\phi\) is the identity function
+\item
+  \(\bm{w}\) is the regression coefficient vector
+\item
+  \(b\) is the intercept
+\end{itemize}
+
+and solved via MLE.
+
+Similarly logistic regression is where \(\phi\) is the sigmoid
+activation function.
+\end{frame}
+
+\begin{frame}{Limitations and extensions}
+\protect\hypertarget{limitations-and-extensions}{}
+A single-node perceptron model is not particularly exciting:
+
+\begin{itemize}
+\tightlist
+\item
+  With identity/sigmoid activation functions we get conventional
+  estimators
+\item
+  The model is linear in inputs
+\end{itemize}
+
+To complicate our models we need to think about creating a
+\textbf{network} of nodes
+
+\begin{itemize}
+\tightlist
+\item
+  Increase the number of computational units
+\item
+  Determine the flow of information along the network
+\end{itemize}
+\end{frame}
+
+\hypertarget{deep-learning}{%
+\section{Deep learning}\label{deep-learning}}
+
+\begin{frame}{Complicating the network}
+\protect\hypertarget{complicating-the-network}{}
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth,height=\textheight]{images/multi-layer.png}
+\caption{Multi-layer (but not deep) network}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Deep neural network}
+\protect\hypertarget{deep-neural-network}{}
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth,height=\textheight]{images/deep-network.png}
+\caption{Multi-layer \textbf{deep} network}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Multi-layer network notation}
+\protect\hypertarget{multi-layer-network-notation}{}
+The computation of outputs through layer \(h\) of a neural network is:
+\begin{align*}
+\mathbf{y}^{(h)} = \sigma ( \mathbf{W}^{(h)} \mathbf{y}^{(h-1)} + \mathbf{b}^{(h)} ), \vspace{-1em}
+\end{align*} where:
+
+\begin{itemize}
+\tightlist
+\item
+  \(\mathbf{y}^{(h)}\) is a vector of outputs from layer \(h\)
+\item
+  \(\mathbf{W}^{(h)}\) is a matrix of weights for layer \(h\)
+\item
+  \(\mathbf{b}\) is a vector of biases for layer \(h\)
+\item
+  \(\sigma\) is an activation function
+\end{itemize}
+
+This model can be generalized to an arbitrary number of hidden layers
+\(H\): \begin{align*}
+\mathbf{y} = \Phi ( \mathbf{W}^{(H)}[...[\sigma ( \mathbf{W}^{(2)}  [\sigma (\mathbf{W}^{(1)} \mathbf{x} + \mathbf{b}^{(1)})] + \mathbf{b}^{(2)})]...] + \mathbf{b}^{(H)}),
+\end{align*} where \(\mathbf{x}\) is a vector of inputs and \(\Phi\) is
+a final-layer activation function.
+\end{frame}
+
+\begin{frame}{Fully-connected networks}
+\protect\hypertarget{fully-connected-networks}{}
+In a fully connected network:
+
+\begin{itemize}
+\tightlist
+\item
+  Every output from layer \(h\) is an input to every node in layer
+  \(h+1\)
+\end{itemize}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth,height=\textheight]{images/fully-connected.png}
+\caption{Fully-connected neural network}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Feed-forward training}
+\protect\hypertarget{feed-forward-training}{}
+We initialise a multi-layer model like a single-layer model:
+
+\begin{itemize}
+\tightlist
+\item
+  Set weight terms for each node within each layer via (Xavier)
+  initialisation
+\end{itemize}
+
+During training, an \textbf{epoch} consists of:
+
+\begin{enumerate}
+\item
+  Feeding every observation through the model
+
+  \begin{itemize}
+  \tightlist
+  \item
+    When there are no cycles in the network, this is called
+    ``feed-forward''
+  \end{itemize}
+\item
+  Calculate the loss associated with the prediction
+\item
+  Adjust weights and biases based on the \textbf{gradient} of the loss
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This is complicated with multiple layers
+  \item
+    Adjusting the weights and bias affects the output of a node
+  \item
+    \ldots{} and the input of the nodes (plural!) that it feeds into!
+  \item
+    This process is called \textbf{backpropagation}
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Estimating treatment effect heterogeneity}
+\protect\hypertarget{estimating-treatment-effect-heterogeneity}{}
+\begin{enumerate}
+\item
+  Train a neural network model on experimental data
+\item
+  Use trained model to predict counterfactual outcomes
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Invert treatment assignment
+  \item
+    Keep all covariates the same
+  \end{itemize}
+\item
+  Estimate ITE
+\end{enumerate}
+
+\begin{scriptsize}
+\[ \left( \begin{array}{c}
+\mathbf{\widetilde{y}_{i,d=1}} \\
+14 \\
+12 \\
+\textcolor{red}{12} \\
+\textcolor{red}{13} \\ 
+7 \\
+7 \\
+\textcolor{red}{6} \\
+\textcolor{red}{7} \\
+\end{array} \right) -
+%
+\left( \begin{array}{c}
+\mathbf{\widetilde{y}_{i,d=0}} \\
+\textcolor{red}{7} \\
+\textcolor{red}{7} \\
+4 \\
+6 \\ 
+\textcolor{red}{8} \\
+\textcolor{red}{6} \\
+8 \\
+6 \\
+\end{array} \right) =
+%
+\left( \begin{array}{c|cc}
+\textbf{\text{ITE}} & \textbf{Gender} & \textbf{Education} \\
+7 & Female & High \\
+5 & Female & Low \\
+8 & Female & High \\
+7 & Female & Low \\
+-1 & Male & High \\
+1 & Male & Low \\
+-2 & Male & High \\
+1 & Male & Low \\
+\end{array} \right)
+\]
+\end{scriptsize}
+
+\begin{enumerate}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Examine how ITE varies across covariates
+\end{enumerate}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,693 @@
+---
+title: "Machine Learning"
+subtitle: "SICSS-Oxford 2021"
+author: "Dr Thomas Robinson, Durham University"
+date: "June 2021"
+output: beamer_presentation
+header-includes:
+  - \usepackage{wrapfig}
+  - \usepackage{graphicx}
+  - \usepackage{bm}
+  - \input{ml_sty.tex}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+```
+
+## Hello!
+
+Today's workshop:
+
+* 1 hr 15 min lecture
+* 15 minute break/Q&A
+* 1.5 hour coding walkthrough on constructing neural networks in $\texttt{R}$
+
+**Caveat**: three hours is not a lot of time!
+
+* Introduce where I think ML is most useful in social sciences
+* Equip you with some fundamental tools that can be applied across:
+  * Contexts
+  * Data sources
+  * Algorithms
+    
+## Lecture content
+
+Goals are threefold:
+
+1. Brief overview of machine learning
+
+    * What is ML?
+    * Prediction problems
+    * Bias-variance tradeoff
+
+2. Building basic neural networks
+
+    * Highly flexible, ``engineering-grade" ML method
+    * Now easily implementable in $\texttt{R}$
+
+# What is machine learning?
+
+## (Machine) learning and statistics
+
+ML is a vague term:
+\vspace{1em}
+
+> "Machine learning is a subfield of **computer science** that is concerned with building **algorithms** which, to be useful, rely on a collection of examples of some phenomenon... the process of solving a practical problem by 1) gathering a dataset, and 2) algorithmically building a statistical model based on that dataset." -- Burkov 2019
+
+\vspace{1em}
+
+To me, ML is defined by:
+
+1. ``Computationally-intensive" methods
+2. Where researchers underspecify the relationship between variables
+3. And allow the computer to search for (or learn) these relationships
+
+## **Machine** learning
+
+Expectation: I need a $1m super computer
+
+Reality: It runs in minutes on a personal computer
+
+![Google: Tensor Processing Unit server rack](images/tensor_server.jpg)
+
+## Why machine learning?
+
+Machine learning can be:
+
+* Powerful
+* Flexible
+* Reduce the burden on the researcher
+
+It helps solve lots of **prediction problems** and can assist in **inference problems** too
+
+But ML is not a panacea!
+
+* ML cannot solve problems of poor research design
+
+* And can introduce its own issues
+
+![](images/twitter_algo_racist.png)
+
+
+## Prediction and inference
+
+Consider the following linear model:
+
+$$
+\hat{y_i} = \hat{\beta_0} + \hat{\beta_1}x_{1i}
+$$
+
+* Inference is concerned with estimating the size/direction of the relationship between variables ($\bm{\hat{\beta}}$ problems)
+* Prediction is concerned with estimating some outcome, using the relationships between variables ($\bm{\hat{y}}$ problems)
+
+These two facets are clearly connected:
+
+* If we know the size/direction of the relationships, we can predict the outcome
+* But we rarely know (or even pretend to know) the true model
+* Sometimes we can get good at $\hat{\bm{y}}$ problems without knowing $\hat{\bm{\beta}}$
+
+<!-- ## Classification and prediction -->
+
+<!-- We can distinguish two types of prediction problem -->
+
+<!-- * **Prediction** -- estimating the value of a continuous variable (sometimes referred to as "regression" problems) -->
+
+<!--   * E.g. The ideology of a politician in 2D space -->
+
+<!--   * The number of votes received by a candidate -->
+
+<!--   * Some interpersonal characteristic of an individual  -->
+
+<!-- * **Classification** -- estimating which *class* of a category an observation belongs to -->
+
+<!--   * Party identity (Republican/Democrat/Libertarian/Independent) -->
+
+<!--   * The topic of a tweet (foreign/domestic, pro/con) -->
+
+## There are $\hat{X}$ problems too
+
+We can also think about where the prediction problem lies:
+
+* $\bm{\hat{y}}$ problems are about the dependent variable
+
+  * To predict an election winner...
+  
+  * ... or the probability of revolution...
+  
+  * ... or the weather tomorrow
+  
+  * These are not necessarily inferential problems
+
+* $\bm{\hat{X}}$ problems are about independent variables
+
+  * Dimensions of interest that may be important to our theory...
+  
+  * ... but which are not directly observable (i.e. latent)
+
+  * We want to make predictions over $\bm{X}$ so we can test an inferential theory about the relationship between $X$ and $y$
+  
+<!-- ## Supervised vs unsupervised methods -->
+
+<!-- **Supervised methods** -->
+
+<!-- \begin{columns} -->
+
+<!-- \begin{column}{0.48\textwidth} -->
+<!-- \begin{itemize} -->
+
+<!-- \item Contains labeled examples of observations with corresponding outcomes $\bm{y}$ -- the \textbf{training data} -->
+<!-- \item Use these examples to ``learn" the relationship between $\bm{y}$ and $\bm{X}$ -->
+<!-- \item Then predict $\bm{y}$ for a \textit{new} \textbf{test} dataset $\bm{X}^{\text{TEST}}$ where $\bm{y}^{\text{TEST}}$ is not observed -->
+<!-- \end{itemize} -->
+<!-- \end{column} -->
+
+<!-- \begin{column}{0.48\textwidth} -->
+
+<!-- Learning the relationship: -->
+<!-- \begin{equation*} -->
+<!-- \underbrace{ -->
+<!-- \begin{bmatrix} -->
+<!-- 1 \\ 0 \\ 0 \\ -->
+<!-- \vdots \\ -->
+<!-- 1 \\ -->
+<!-- \end{bmatrix} -->
+<!-- }_{\mathbf{y}^{\text{TRAIN}}} -->
+<!-- \underbrace{ -->
+<!-- \begin{bmatrix} -->
+<!-- 3.3 & 1.1 & 0 \\ -->
+<!-- 2.7 & 0.8 & 0 \\ -->
+<!-- 1.8 & 0.1 & 1 \\ -->
+<!-- \vdots & \vdots & \vdots \\ -->
+<!-- 5 & 1.2 & 0 \\ -->
+<!-- \end{bmatrix} -->
+<!-- }_{\mathbf{X}^{\text{TRAIN}}} -->
+<!-- \end{equation*} -->
+
+<!-- Predicting on new data -->
+<!-- \begin{equation*} -->
+<!-- \mathbf{X^{\text{TEST}}} = -->
+<!-- \begin{bmatrix} -->
+<!-- 3.5 & 1.9 & 1 \\ -->
+<!-- 5.4 & 0.3 & 0 \\ -->
+<!-- 1.7 & 0.5 & 1 \\ -->
+<!-- \end{bmatrix} -->
+<!-- \end{equation*} -->
+<!-- \end{column} -->
+
+<!-- \end{columns} -->
+
+## Bias and variance
+
+Bias is a feature of the estimator:
+
+* $\text{Bias}_{\bm{\beta}} = \big(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\beta}\big)$
+
+* With OLS under Gauss Markov assumptions, $\big(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\beta}\big) = 0$
+
+Variance occurs due to resampling from the population:
+
+* Parameter estimates change (slightly) as we re-estimate the model with new data
+
+* $\mathbb{V}_{\bm{\hat{\beta}}} = \mathbb{E}\big[(\mathbb{E}[\bm{\hat{\beta}}] - \bm{\hat{\beta}})^2\big]$
+
+* The average distance between a particular parameter estimate and the mean of parameter estimates over multiple samples
+
+## Visualising bias and variance
+
+```{r bias-var,warning=FALSE, message=FALSE,fig.align='center', fig.width = 3.5, fig.height=3.5}
+
+circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
+}
+
+c1 <- circleFun(c(0,0)) %>% mutate(bias = "High bias", variance = "High variance")
+c2 <- circleFun(c(0,0)) %>% mutate(bias = "Low bias", variance = "High variance")
+c3 <- circleFun(c(0,0)) %>% mutate(bias = "High bias", variance = "Low variance")
+c4 <- circleFun(c(0,0)) %>% mutate(bias = "Low bias", variance = "Low variance")
+
+set.seed(89)
+hbhv <- data.frame(x = rnorm(10,0.2,0.14),
+                   y = rnorm(10,0.2,0.14),
+                   bias = "High bias", variance = "High variance")
+
+hblv <- data.frame(x = rnorm(10,0.2,0.03),
+                   y = rnorm(10,0.2,0.03),
+                   bias = "High bias", variance = "Low variance")
+
+lbhv <- data.frame(x = rnorm(10,0,0.14),
+                   y = rnorm(10,0,0.14),
+                   bias = "Low bias", variance = "High variance")
+
+lblv <- data.frame(x = rnorm(10,0,0.03),
+                   y = rnorm(10,0,0.03),
+                   bias = "Low bias", variance = "Low variance")
+
+points_df <- rbind(hbhv, hblv, lbhv, lblv)
+
+ggplot(rbind(c1,c2,c3,c4),aes(x,y)) + 
+  geom_path() + 
+  geom_point(data = points_df, aes(x = x, y = y), size = 2, color = "red", alpha = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  facet_grid(bias ~ variance) +
+  xlim(-0.5,0.5) + ylim(-0.5,0.5) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  theme(text = element_text(size = 14),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())
+  
+```
+
+## Bias-variance trade off
+
+So can't we just choose a low-variance, low-bias modeling strategy? Not quite!
+
+Assume we calculate the mean squared error of some new data $\bm{X'}$ given a trained model $\hat{f}$:
+$$
+\text{MSE} = \mathbb{E}[(\hat{f}(\bm{X'})  - y)^2].
+$$
+We can decompose this further:
+$$
+MSE = \underbrace{\mathbb{E}\big[(\hat{f}(\bm{X'})-\mathbb{E}[\hat{y}])^2\big]}_{\text{Variance}} + \underbrace{\big(\mathbb{E}[\bm{\hat{y}}] - \bm{y}\big)^2}_{\text{Bias}^2}
+$$
+
+So holding the MSE fixed, if we reduce the variance we must increase the bias
+
+* I.e. there is a **bias-variance trade-off**
+
+## Visualising the trade-off
+
+```{r tradeoff, warning=FALSE, message=FALSE}
+
+err_df <- data.frame(complexity = seq(0.5,4,by = 0.2))
+err_df$var <- 0.1*err_df$complexity^2
+err_df$bias2 <- 1/(err_df$complexity)
+err_df$total <- err_df$var + err_df$bias2 + 0.1
+
+err_labs <- list("Variance",bquote("Bias"^2),"Total")
+
+err_df %>% 
+  pivot_longer(-complexity) %>% 
+
+ggplot(aes(x = complexity, y = value, color = name)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  geom_vline(xintercept = 1.7, linetype = "dashed", size = 1.2) + 
+  scale_colour_manual(values=1:3,breaks=c("var","bias2","total"),
+                      labels=err_labs) + 
+  labs(x = "Model Complexity", y = "Error",color = "Error") + 
+  theme_minimal() +
+    theme(legend.position = "bottom",
+          axis.text = element_blank(),
+          axis.line = element_line(arrow = grid::arrow(length = unit(0.3, "cm"), 
+                                                       ends = "last"),
+                                   size = 1.2),
+          axis.title = element_text(hjust = 0.9),
+          text = element_text(size = 20))
+
+```
+
+## A bit of bias can be useful
+
+```{r bias-var2,warning=FALSE, message=FALSE,fig.align='center', fig.width = 5, fig.height=3}
+
+set.seed(64)
+c1 <- circleFun(c(0,0)) %>% mutate(bias = "Moderate bias", variance = "Moderate variance")
+c2 <- circleFun(c(0,0)) %>% mutate(bias = "Low bias", variance = "High variance")
+
+mbmv <- data.frame(x = rnorm(10,0.1,0.05),
+                   y = rnorm(10,0.1,0.05),
+                   bias = "Moderate bias", variance = "Moderate variance")
+
+lbhv <- data.frame(x = rnorm(10,0,0.2),
+                   y = rnorm(10,0,0.2),
+                   bias = "Low bias", variance = "High variance")
+
+
+points_df <- rbind(lbhv, mbmv)
+
+ggplot(rbind(c1,c2),aes(x,y)) + 
+  geom_path() + 
+  geom_point(data = points_df, aes(x = x, y = y), size = 2, color = "red", alpha = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  facet_wrap( ~ variance + bias, nrow = 1) +
+  xlim(-0.5,0.5) + ylim(-0.5,0.5) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  theme(text = element_text(size = 14),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())
+  
+```
+
+## Bias in ML
+
+ML methods are typically powerful because they allow a tradeoff between variance and bias:
+
+* We do this by "regularizing" our estimator
+
+* Good for prediction
+* Bad for inference (in simple applications)
+
+A nice introduction to bias, regularisation and ML is provided in:
+
+>> Kleinberg et al (2015). Prediction Policy Problems, AER.
+
+# Treatment effect estimation and neural networks
+
+## Effect heterogeneity 
+Suppose we have 8 observations of an outcome, treatment assignment and two covariates:
+
+\vspace{1em}
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{table}[]
+    \begin{scriptsize}
+\begin{tabular}{c|c|cc}
+     \textbf{y} & \textbf{d} & \textbf{Gender} & \textbf{Education}  \\ \hline
+     12 & 1 & Female & High \\
+     13 & 1 & Female & Low\\
+     5 & 0 & Female & High\\
+     6 & 0 & Female & Low\\
+     7 & 1 & Male & High\\
+     8 & 1 & Male & Low\\
+     7 & 0 & Male & High\\
+     6 & 0 & Male & Low\\
+\end{tabular}
+\end{scriptsize}
+    \caption{Observed}
+\end{table}
+\end{column}
+
+\begin{column}{0.5\textwidth}
+\begin{table}[]
+    \begin{scriptsize}
+\begin{tabular}{c|c|cc}
+     \textbf{y} & \textbf{d} & \textbf{Gender} & \textbf{Education}  \\ \hline
+     ? & \textcolor{red}{0} & Female & High \\
+     ? & \textcolor{red}{0} & Female & Low\\
+     ? & \textcolor{red}{1} & Female & High\\
+     ? & \textcolor{red}{1} & Female & Low\\
+     ? & \textcolor{red}{0} & Male & High\\
+     ? & \textcolor{red}{0} & Male & Low\\
+     ? & \textcolor{red}{1} & Male & High\\
+     ? & \textcolor{red}{1} & Male & Low\\
+\end{tabular}
+\end{scriptsize}
+    \caption{Unobserved counterfactual}
+\end{table}
+\end{column}
+\end{columns}
+
+\centering $\text{ATE}_{\text{Observed}} = 10 - 6 = 4$
+
+*The ATE may mask considerable heterogeneity*
+
+## Conditional Average Treatment Effect
+
+We can break down our ATE into conditional estimates:
+$$
+\text{CATE} = \mathbb{E}[Y|d = 1, X=a] - \mathbb{E}[Y|d = 0, X=a]
+$$
+
+In particular, we can think about estimating the individual level effect, i.e.
+$$
+\text{ITE} = [Y_i|d=1] - [Y_i|d = 0]
+$$
+
+* This is not an average
+* Conventionally impossible to estimate given **fundamental problem of causal inference**
+
+Prediction problem:
+
+* For those treated (control) units, what would they have done under control (treatment)?
+
+## Enter the neural network
+
+What we need is a flexible way of modelling the potential relationship between **y**, **d** and **X**:
+
+* Neural networks offer one such approach
+
+* Very popular in industry
+
+* Recently a lot more accessible in $\texttt{R}$
+
+* Other methods available:
+
+    * Random forests
+    * BART
+    * Best subset modelling
+
+## Simple perceptron model
+
+Suppose we have a single vector of input data $\bm{x}$, and we want to predict the output $\bm{y}$
+
+A simple perceptron model looks like the following:
+
+![Single node, single layer perceptron model](images/sn_perceptron.png){width=40%}
+
+$w$ is the weight term and $b$ is the bias term -- in this simple case, both are scalar.
+
+
+## Activation functions $\phi$
+
+The activation function is simply a function applied to the result of $w\bm{x} + b$, that controls the range of the output vector
+
+$\phi$ may simply be the **identity function**:
+
+* I.e. $\phi(\bm{x}) = \bm{x}$
+
+**Sigmoid function**:
+
+* $\phi(\bm{x}) = \frac{1}{1 + e^{-\bm{x}}}$
+
+**Rectified Linear Unit (ReLU)**:
+
+* $\phi(\bm{x}) = \max(0,x)$
+
+These functions (and others) are particularly useful because they have known derivatives -- which we'll return to later!
+
+## Gaining a prediction from our simple model
+
+\begin{columns}
+\begin{column}{0.4\textwidth}
+\includegraphics[width = \textwidth]{images/sn_perceptron.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+Suppose:
+\begin{itemize}
+\item $\phi$ is the ReLU function
+\item $\bm{w} = \bm{2}, b = 1$
+\end{itemize}
+\end{column}
+\end{columns}
+
+And we observe the following input vector $\bm{x}$:
+$$
+\begin{bmatrix}
+5 \\
+1 \\
+-1 
+\end{bmatrix}  
+$$
+What is $\hat{\bm{y}}$?
+
+## Multiple inputs
+
+The first model is very basic, so we can adapt it to accept **multiple** inputs:
+
+* Let $k$ index input variables, i.e. $\bm{X} = \{\bm{x}_1,\ldots,\bm{x}_k\}$
+* Let $\bm{w}$ be a vector of weights, i.e. $\bm{w} = \{w_1, \ldots, w_k \}$
+
+Inside our activation function we replace $w\bm{x} + b$ with
+$$
+w_1\bm{x}_1 + \ldots + w_k\bm{x}_k + b \equiv \sum_k{w_k\bm{x}_k} + b
+$$
+
+![Single node, multiple input perceptron model](images/mn_perceptron.png){width=40%}
+
+## Initialisation and training
+
+We need to set up a network structure, prior to feeding in our data.
+
+For a single-node perceptron model with $k$ inputs, that means instantiating the weights and biases
+
+* A naive option sets $\bm{w} = \bm{0}$
+
+  * This is rarely optimal -- it can lead to significantly slower convergence (and can even disrupt convergence entirely)
+  
+A now standard approach is to use **Xavier initialisation** where:
+$$
+w_k \sim \mathcal{N}(0,\frac{1}{k})
+$$
+
+  * where $k$ is the number of inputs to the node
+  * Typically used when $\phi$ is tanh or sigmoidal
+  * Bias terms are instantiated at zero
+
+
+## Loss functions
+
+The goal of the perceptron is to minimise the predictive error between $\bm{y}$ and $\bm{\hat{y}} = \phi(\sum_k{w_k\bm{x}_k} + b)$
+
+Depending on the type of prediction problem, we want to use a different function:
+
+**Continuous $\bm{y}$**
+
+* $\phi$ will be linear or ReLU 
+* Minimise the mean squared error
+* I.e. $\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y_i})^2$
+
+**Binary $\bm{y}$**
+
+* $\phi$ will be sigmoid
+* Minimise using **cross-entropy** loss function
+* I.e. $=-\frac{1}{N}\sum_{i=1}^n\sum_{c=1}^{C}{y_{ic}\log(\hat{y_{ic}})}$ 
+    * where $c$ indexes the classes within the binary/categorical variable
+
+## OLS/Logistic regression as a single-layer perceptron
+
+We can construe OLS as a single-node perceptron model,
+$$
+\bm{y} = \phi(b + w_1\bm{x_1} + ... + w_k\bm{x_k}),
+$$
+when:
+
+* $\phi$ is the identity function
+* $\bm{w}$ is the regression coefficient vector
+* $b$ is the intercept
+
+and solved via MLE.
+
+Similarly logistic regression is where $\phi$ is the sigmoid activation function.
+
+## Limitations and extensions
+
+A single-node perceptron model is not particularly exciting:
+
+* With identity/sigmoid activation functions we get conventional estimators
+* The model is linear in inputs
+
+To complicate our models we need to think about creating a **network** of nodes
+
+* Increase the number of computational units
+* Determine the flow of information along the network
+
+# Deep learning
+
+## Complicating the network
+
+![Multi-layer (but not deep) network](images/multi-layer.png){width=80%}
+
+## Deep neural network
+
+![Multi-layer **deep** network](images/deep-network.png){width=80%}
+
+## Multi-layer network notation
+
+The computation of outputs through layer $h$ of a neural network is:
+\begin{align*}
+\mathbf{y}^{(h)} = \sigma ( \mathbf{W}^{(h)} \mathbf{y}^{(h-1)} + \mathbf{b}^{(h)} ), \vspace{-1em}
+\end{align*}
+where:
+
+* $\mathbf{y}^{(h)}$ is a vector of outputs from layer $h$
+* $\mathbf{W}^{(h)}$ is a matrix of weights for layer $h$
+* $\mathbf{b}$ is a vector of biases for layer $h$
+* $\sigma$ is an activation function
+
+This model can be generalized to an arbitrary number of hidden layers $H$:
+\begin{align*}
+\mathbf{y} = \Phi ( \mathbf{W}^{(H)}[...[\sigma ( \mathbf{W}^{(2)}  [\sigma (\mathbf{W}^{(1)} \mathbf{x} + \mathbf{b}^{(1)})] + \mathbf{b}^{(2)})]...] + \mathbf{b}^{(H)}),
+\end{align*}
+where $\mathbf{x}$ is a vector of inputs and $\Phi$ is a final-layer activation function.
+
+## Fully-connected networks
+
+In a fully connected network:
+
+* Every output from layer $h$ is an input to every node in layer $h+1$
+
+![Fully-connected neural network](images/fully-connected.png){width=80%}
+
+## Feed-forward training
+
+We initialise a multi-layer model like a single-layer model:
+
+* Set weight terms for each node within each layer via (Xavier) initialisation
+
+During training, an **epoch** consists of:
+
+1. Feeding every observation through the model
+    
+    * When there are no cycles in the network, this is called "feed-forward"
+
+2. Calculate the loss associated with the prediction
+
+3. Adjust weights and biases based on the **gradient** of the loss
+
+    * This is complicated with multiple layers
+    * Adjusting the weights and bias affects the output of a node
+    * ... and the input of the nodes (plural!) that it feeds into!
+    * This process is called **backpropagation**
+
+## Estimating treatment effect heterogeneity
+
+1. Train a neural network model on experimental data
+
+2. Use trained model to predict counterfactual outcomes
+
+    * Invert treatment assignment
+    * Keep all covariates the same
+    
+3. Estimate ITE
+
+\begin{scriptsize}
+\[ \left( \begin{array}{c}
+\mathbf{\widetilde{y}_{i,d=1}} \\
+14 \\
+12 \\
+\textcolor{red}{12} \\
+\textcolor{red}{13} \\ 
+7 \\
+7 \\
+\textcolor{red}{6} \\
+\textcolor{red}{7} \\
+\end{array} \right) -
+%
+\left( \begin{array}{c}
+\mathbf{\widetilde{y}_{i,d=0}} \\
+\textcolor{red}{7} \\
+\textcolor{red}{7} \\
+4 \\
+6 \\ 
+\textcolor{red}{8} \\
+\textcolor{red}{6} \\
+8 \\
+6 \\
+\end{array} \right) =
+%
+\left( \begin{array}{c|cc}
+\textbf{\text{ITE}} & \textbf{Gender} & \textbf{Education} \\
+7 & Female & High \\
+5 & Female & Low \\
+8 & Female & High \\
+7 & Female & Low \\
+-1 & Male & High \\
+1 & Male & Low \\
+-2 & Male & High \\
+1 & Male & Low \\
+\end{array} \right)
+\]
+\end{scriptsize}
+
+4. Examine how ITE varies across covariates
